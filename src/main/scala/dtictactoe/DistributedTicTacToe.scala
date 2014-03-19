@@ -14,14 +14,15 @@ object DistributedTicTacToe extends App {
   implicit val timeout = Timeout(10 seconds)
 
   val actorSystem = ActorSystem()
+  val gameSupervisor = actorSystem.actorOf(Props[GameSupervisor])
   val playerCount = 50
-  val gameCount = 10
+  val gameCount = 1000
 
   val players = for {
     x <- 1 to playerCount
   } yield TicTacToe.uuid
 
-  players.foreach(player => actorSystem.actorOf(Props(new DumbActor), player))
+  players.foreach(player => actorSystem.actorOf(Props[DumbActor], player))
 
   val results = for {
     x <- 1 to gameCount
@@ -29,7 +30,7 @@ object DistributedTicTacToe extends App {
     matchups = roster.take(players.length / 2) zip roster.takeRight(players.length / 2)
     games = matchups.map(matchup => (TicTacToe.uuid, matchup))
     results = games.map{game => 
-      actorSystem.actorOf(Props(new GameActor)) ? new Game(game._2)
+      gameSupervisor ? new Game(game._2)
     }
     futureResults = Future.sequence(results)
   } yield Await.result(futureResults, timeout.duration)

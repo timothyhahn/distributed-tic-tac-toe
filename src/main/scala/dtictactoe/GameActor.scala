@@ -1,9 +1,11 @@
 package dtictactoe
 
 // Akka Imports
-import akka.actor.Actor
+import akka.actor.{Actor, Props, OneForOneStrategy}
+import akka.actor.SupervisorStrategy.Restart
 import akka.pattern.ask
 import akka.util.Timeout
+import akka.routing.FromConfig
 
 // Scala Imports
 import scala.concurrent.Await
@@ -45,5 +47,24 @@ class GameActor extends Actor {
   def receive = {
     case Game(matchup: (String, String)) =>
       sender ! playGame(matchup, TicTacToe.emptyBoard, true)
+  }
+}
+
+class GameSupervisor extends Actor {
+
+  // Escalate exceptions, try up to 10 times, if one actor fails, try just that one again
+  val escalator = OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 5 seconds) {
+    case _: Exception => sender ! "DRAW"; Restart
+  }
+
+  val router = context.system.actorOf(Props[GameActor].withRouter(
+      FromConfig.withSupervisorStrategy(escalator)),
+    name="gameactorrouter")
+
+  def receive = {
+    case game: Game =>
+      router forward game
+    case _ =>
+      println("Error: in game supervisor")
   }
 }
