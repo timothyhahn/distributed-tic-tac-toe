@@ -5,13 +5,9 @@ import akka.actor.Actor
 
 case class Board(board: List[List[Char]])
 
-object DumbActor {
-  def apply() = new DumbActor
-}
-
 class DumbActor extends TicTacToeActor {
 
-  def randomMove(moves: List[(Int, Int)]): (Int, Int) = moves(util.Random.nextInt(moves.length)) 
+  def randomMove(moves: List[(Int, Int)]): (Int, Int) = moves(TicTacToe.rng.nextInt(moves.length)) 
 
   def calculateMove(board: List[List[Char]]): (Int, Int) = randomMove(validMoves(board))
 
