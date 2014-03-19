@@ -22,21 +22,18 @@ object DistributedTicTacToe extends App {
 
   players.foreach(player => actorSystem.actorOf(Props(new DumbActor), player))
 
-  var gamesPlayed = 0
-  while(gamesPlayed < 10) {
-    val roster = TicTacToe.rng.shuffle(players)
-    val matchups = roster.take(players.length / 2) zip roster.takeRight(players.length / 2)
-    val games = matchups.map(matchup => (TicTacToe.uuid, matchup))
-    val results = games.map{game => 
+  val results = for {
+    x <- 1 to 10
+    roster = TicTacToe.rng.shuffle(players)
+    matchups = roster.take(players.length / 2) zip roster.takeRight(players.length / 2)
+    games = matchups.map(matchup => (TicTacToe.uuid, matchup))
+    results = games.map{game => 
       actorSystem.actorOf(Props(new GameActor)) ? new Game(game._1, game._2)
     }
+    futureResults = Future.sequence(results)
+  } yield Await.result(futureResults, 5 seconds)
 
-    val futureResults = Future.sequence(results)
-    val result = Await.result(futureResults, 5 seconds)
-    println(result)
-
-    gamesPlayed += 1
-  }
+  println(results.flatten.groupBy(x => x).map(a => (a._1, a._2.length)).toSeq.sortWith(_._2 > _._2))
 
   actorSystem.shutdown()
 }
