@@ -5,14 +5,21 @@ import akka.actor.Actor
 
 case class Board(board: List[List[Char]])
 
+object DumbActor {
+  def apply() = new DumbActor
+}
+
 class DumbActor extends TicTacToeActor {
 
   def randomMove(moves: List[(Int, Int)]): (Int, Int) = moves(util.Random.nextInt(moves.length)) 
 
   def calculateMove(board: List[List[Char]]): (Int, Int) = randomMove(validMoves(board))
+
 }
 
 trait TicTacToeActor extends Actor {
+
+  def calculateMove(board: List[List[Char]]): (Int, Int)
 
   def validMoves(board: List[List[Char]]): List[(Int, Int)] = {
     (for {
@@ -22,7 +29,6 @@ trait TicTacToeActor extends Actor {
     } yield (x, y)).toList
   }
 
-  def calculateMove(board: List[List[Char]]): (Int, Int)
   def receive = {
     case board: Board =>
       sender ! calculateMove(board.board)
