@@ -13,10 +13,10 @@ object DistributedTicTacToe extends App {
   implicit val timeout = Timeout(1 seconds)
 
   val actorSystem = ActorSystem()
-  val firstActor = actorSystem.actorOf(Props[TicTacToeActor])
-  val future = firstActor ? Ping
-  Await.result(future, timeout.duration)
-  println("Pong Received!")
+  val firstActor = actorSystem.actorOf(Props[DumbActor])
+  val future = firstActor ? new Board(List(List[Char]()))
+  val result = Await.result(future, timeout.duration).asInstanceOf[(Int, Int)]
+  println(s"Board Received! $result")
   actorSystem.shutdown
   
 }

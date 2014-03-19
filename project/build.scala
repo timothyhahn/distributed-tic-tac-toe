@@ -8,7 +8,7 @@ import sbt.Project.Initialize
 
 object DistributedTicTacToe extends Build {
 
-  lazy val defaultSettings = Defaults.defaultSettings ++ Seq(
+  lazy val defaultSettings = Defaults.defaultSettings ++ compileJdk7Settings ++ Seq(
     organization := "dtictactoe",
     version := "0.0.1",
     scalaVersion := Dependency.V.Scala,

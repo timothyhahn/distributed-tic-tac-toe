@@ -3,14 +3,19 @@ package dtictactoe
 // Akka Imports
 import akka.actor.Actor
 
-case object Ping
-case object Pong
+case class Board(board: List[List[Char]])
 
-class TicTacToeActor extends Actor {
+class DumbActor extends TicTacToeActor {
+  def calculateMove(board: List[List[Char]]): (Int, Int) = {
+    (1, 1)
+  }
+
+}
+
+trait TicTacToeActor extends Actor {
+  def calculateMove(board: List[List[Char]]): (Int, Int)
   def receive = {
-    case Ping =>
-      println("Received Ping")
-      sender ! Pong
-
+    case board: Board =>
+      sender ! calculateMove(board.board)
   }
 }
