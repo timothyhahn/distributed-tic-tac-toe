@@ -39,7 +39,10 @@ class DumbActorTest extends TestKit(ActorSystem("testSystem"))
       val dumbActorRef = TestActorRef(Props(new DumbActor))
       val future = dumbActorRef ? new Board(emptyBoard)
       val result = Await.result(future, timeout.duration).asInstanceOf[(Int, Int)]
-      result should not equal((-1, -1))
+      result._1 should be >= 0
+      result._1 should be < 3
+      result._2 should be >= 0
+      result._2 should be < 3
     }
 
 }
