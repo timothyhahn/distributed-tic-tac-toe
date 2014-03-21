@@ -15,7 +15,7 @@ import scala.concurrent.duration._
 case class Game(matchup: (String, String))
 
 class GameActor extends Actor {
-  implicit val timeout = Timeout(2 seconds)
+  implicit val timeout = Timeout(10 seconds)
   def playGame(matchup: (String, String), board: List[List[Char]], xTurn: Boolean): String = {
     if(TicTacToe.isGameOver(board)) {
       ((TicTacToe.isWonBy(board, 'x'), TicTacToe.isWonBy(board, 'o')) match {

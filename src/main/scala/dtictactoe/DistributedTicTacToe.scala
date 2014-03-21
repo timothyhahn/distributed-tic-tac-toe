@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 import ExecutionContext.Implicits.global
 
 object DistributedTicTacToe extends App {
-  implicit val timeout = Timeout(10 seconds)
+  implicit val timeout = Timeout(60 seconds)
 
   val actorSystem = ActorSystem()
   val gameSupervisor = actorSystem.actorOf(Props[GameSupervisor])
@@ -22,7 +22,7 @@ object DistributedTicTacToe extends App {
     x <- 1 to playerCount
   } yield TicTacToe.uuid
 
-  players.foreach(player => actorSystem.actorOf(Props[DumbActor], player))
+  players.foreach(player => actorSystem.actorOf(Props[SmartActor], player))
 
   val results = for {
     x <- 1 to gameCount

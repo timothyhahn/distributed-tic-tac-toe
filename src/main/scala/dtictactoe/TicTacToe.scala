@@ -20,6 +20,17 @@ object TicTacToe {
     }
   }
 
+  def otherPlayer(player: Char): Char = {
+    player match {
+      case 'x' =>
+        'o'
+      case 'o' =>
+        'x'
+      case _ =>
+        ' '
+    }
+  }
+
   def uuid = java.util.UUID.randomUUID.toString
 
   val emptyBoard: List[List[Char]] = List.fill[Char](3,3) { ' ' }
