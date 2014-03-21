@@ -11,6 +11,8 @@ class Server(actorSystem: ActorSystem) {
     case HttpRequest(httpRequest) => httpRequest match {
       case GET(Path("/")) => 
         actorSystem.actorOf(Props[StaticHandler]) ! httpRequest
+      case GET(Path("/scores")) =>
+        actorSystem.actorSelection("user/RedisHandler") ! httpRequest
       case _ =>
         httpRequest.response.write(HttpResponseStatus.NOT_FOUND)
     }
@@ -21,12 +23,13 @@ class Server(actorSystem: ActorSystem) {
     }
 
     case WebSocketFrame(wsFrame) =>
-      actorSystem.actorOf(Props[RedisHandler]) ! wsFrame
+      actorSystem.actorSelection("user/GameTrigger") ! StartGame 
   })
 
   def start() {
     val webServer = new WebServer(WebServerConfig(), routes, actorSystem)
-    Runtime.getRuntime.addShutdownHook(new Thread { override def run { webServer.stop() } })
+    actorSystem.actorOf(Props(new WebSocketHandler(webServer.webSocketConnections)), "WebSocketHandler")
+    Runtime.getRuntime.addShutdownHook(new Thread { override def run { webServer.stop(); actorSystem.shutdown() } })
 
     webServer.start()
     System.out.println("Web Server started")

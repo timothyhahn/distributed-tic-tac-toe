@@ -11,7 +11,6 @@ import akka.routing.FromConfig
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-
 case class Game(matchup: (String, String))
 
 class GameActor extends Actor {
@@ -46,12 +45,14 @@ class GameActor extends Actor {
 
   def receive = {
     case Game(matchup: (String, String)) =>
-      sender ! playGame(matchup, TicTacToe.emptyBoard, true)
+      val winner = playGame(matchup, TicTacToe.emptyBoard, true)
+      context.system.actorSelection("user/RedisHandler") ! new Win(winner)
+      val message = matchup._1.split('-').head + " vs " + matchup._2.split('-').head + " - " + winner.split('-').head
+      context.system.actorSelection("user/WebSocketHandler") ! message
   }
 }
 
 class GameSupervisor extends Actor {
-
   // Escalate exceptions, try up to 10 times, if one actor fails, try just that one again
   val escalator = OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 5 seconds) {
     case _: Exception => sender ! "DRAW"; Restart

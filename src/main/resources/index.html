@@ -1,1 +1,190 @@
-Hello
+<!DOCTYPE html>
+<html class="no-js">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="http://yui.yahooapis.com/combo?pure/0.4.2/base-min.css&pure/0.4.2/grids-min.css&pure/0.4.2/tables-min.css&pure/0.4.2/buttons-min.css">
+        <style>
+          #grid {
+            margin-left: 20px;
+            margin-right: 20px;
+          }
+          #updates {
+            width: 100%;
+            height: 400px;
+          }
+          #table {
+            width: 100%;
+            margin-right: 100px;
+
+          }
+table {
+    display: table;
+    width: 100%;
+}
+table thead, table tbody {
+    float: left;
+    width: 100%;
+}
+table tbody {
+    overflow: auto;
+    height: 400px;
+}
+table tr {
+    width: 100%;
+    display: table;
+    text-align: left;
+}
+table th, table td {
+    width: 33%;
+}
+
+        </style>
+    </head>
+    <body>
+      <div class="pure-g" id="grid">
+          <div class="pure-u-12-24 topbar">
+              Topbar
+
+          <button id="startgames" class="pure-button pure-button-primary" name="startgames" onclick="startGames()" disabled>Start Games</button>
+          </div>
+          <div id="chart"></div>
+      </div>
+
+      <div class="pure-g" id="grid">
+          <div class="pure-u-17-24">
+            <table id="table" class="pure-table pure-table-horizontal">
+              <thead>
+                <tr><th>Name</th><th>Score</th><th>AI Type</th></tr>
+              </thead>
+              <tbody data-bind="foreach: players">
+              <tr>
+                <td data-bind="text: name"></td>
+                <td data-bind="text: score"></td>
+                <td data-bind="text: type"></td>
+              </tr>
+              </tbody>
+    
+            </table>
+          </div>
+          <div class="pure-u-6-24 sidebar">
+            <textarea id="updates" readonly="readonly" resize="none"></textarea>
+          </div>
+      </div>
+      <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+      <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+      <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
+
+      <script>
+        $(document).ready(function() {
+          // Set update textarea height
+          $('tbody').height($(document ).height() - 300);
+          $('#updates').height($(document ).height() - 240);
+
+          // Open websocket
+          var socket = new WebSocket('ws://' + document.location.host + '/ws');
+
+          socket.onopen = function() {
+            console.log('Connection opened');
+            $('#startgames').prop('disabled', false);
+          }
+
+          socket.onclose = function() {
+            console.log('Connection closed')
+            $('#startgames').prop('disabled', true);
+          }
+          socket.onmessage = function(event) {
+            console.log(event.data);
+            $('#updates').val(function(_, val) {
+              return val + event.data + "\n"; 
+            }); 
+            $('#updates').scrollTop($('#updates')[0].scrollHeight);
+          }
+
+          // Start games
+          window.startGames = function() {
+            socket.send('StartGames');
+            getPlayerScores();
+          }
+
+          // Load Players
+          function PlayerViewModel(){
+            var self = this;
+            self.players = ko.observableArray([]);
+          }
+
+          var pvm = new PlayerViewModel();
+          ko.applyBindings(pvm);
+          
+          var updatePlayerScores = function(players) {
+            pvm.players(players);
+          }
+
+          var teams = [{'name': "Smart", 'score': 1}, {'name': "Dumb", 'score': 1}];
+          var getPlayerScores = function(){
+            $.getJSON("/scores",function(data){
+              updatePlayerScores(data.scores.players);
+              teams = data.scores.teams;
+              change(teams);
+              $('#table tr:odd').addClass('pure-table-odd');
+            });
+          }
+
+          getPlayerScores();
+          // D3
+          var width = 200;
+          var height = 200;
+          var radius = Math.min(width, height) / 2;
+
+          var color = d3.scale.ordinal()
+          .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+          
+          var svg = d3.select("#chart").append("svg")
+              .attr("width", width)
+              .attr("height", height)
+              .append("g")
+              .attr("id", "pieChart")
+              .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+          
+          var arc = d3.svg.arc()
+          .outerRadius(radius - 10)
+          .innerRadius(radius - 70);
+          
+          var pie = d3.layout.pie()
+              .sort(null)
+              .value(function(d) { return d.score; });
+          
+          var path = svg.selectAll("path")
+              .data(pie(teams))
+              .enter()
+              .append("path");
+          
+            path.transition()
+                .duration(500)
+                .attr("fill", function(d, i) { return color(d.data.name); })
+                .attr("d", arc)
+                .each(function(d) { this._current = d; }); // store the initial angles
+          
+          function change(data){
+              path.data(pie(data));
+              path.transition().duration(750).attrTween("d", arcTween); // redraw the arcs
+          }
+          
+          // Store the displayed angles in _current.
+          // Then, interpolate from _current to the new angles.
+          // During the transition, _current is updated in-place by d3.interpolate.
+          function arcTween(a) {
+            var i = d3.interpolate(this._current, a);
+            this._current = i(0);
+            return function(t) {
+              return arc(i(t));
+            };
+          }
+
+        });
+      </script>
+    </body>
+</html>
