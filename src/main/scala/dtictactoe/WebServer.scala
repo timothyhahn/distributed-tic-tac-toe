@@ -27,7 +27,7 @@ class Server(actorSystem: ActorSystem) {
   })
 
   def start() {
-    val webServer = new WebServer(WebServerConfig(), routes, actorSystem)
+    val webServer = new WebServer(WebServerConfig(hostname="0.0.0.0", port=sys.env.get("PORT").getOrElse("8888").toInt), routes, actorSystem)
     actorSystem.actorOf(Props(new WebSocketHandler(webServer.webSocketConnections)), "WebSocketHandler")
     Runtime.getRuntime.addShutdownHook(new Thread { override def run { webServer.stop(); actorSystem.shutdown() } })
 
