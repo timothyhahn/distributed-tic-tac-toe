@@ -7,13 +7,15 @@ import com.redis._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.JsonDSL._
+import java.net.URI
 
 case class Player(name: String, actorType: String)
 case class Win(player: String)
 
 class RedisHandler extends Actor {
 
-  val r = new RedisClient("localhost", 6379)
+  val uri = new URI(sys.env.get("REDISCLOUD_URL").getOrElse("http://localhost:6379"))
+  val r = new RedisClient(uri.getHost, uri.getPort)
 
   def convertScore(score: String): Int = {
     try{
