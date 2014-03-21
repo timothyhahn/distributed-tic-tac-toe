@@ -56,7 +56,7 @@ trait TicTacToeActor extends Actor {
   }
 
   def receive = {
-    case board: Board =>
-      sender ! calculateMove(board.board, board.player)
+    case Board(board, player) =>
+      sender ! calculateMove(board, player)
   }
 }

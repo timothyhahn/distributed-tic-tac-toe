@@ -20,8 +20,8 @@ class Server(actorSystem: ActorSystem) {
         wsHandshake.authorize()
     }
 
-    //case WebSocketFrame(wsFrame) =>
-    //  actorSystem.actorOf(Props[RedisHandler]) ! wsFrame
+    case WebSocketFrame(wsFrame) =>
+      actorSystem.actorOf(Props[RedisHandler]) ! wsFrame
   })
 
   def start() {

@@ -32,7 +32,7 @@ object DistributedTicTacToe extends Build {
 object Dependencies {
   import Dependency._
   val dtictactoe = Seq(
-    Dependency.akkaActor, Dependency.squeryl, Dependency.json4sjackson,  Dependency.socko, Dependency.h2,
+    Dependency.akkaActor, Dependency.squeryl, Dependency.json4sjackson,  Dependency.socko, Dependency.redis,
     Dependency.akkaTestKit, Dependency.scalatest
   )
 }
@@ -50,5 +50,5 @@ object Dependency {
   val slf4j = "org.slf4j" % "slf4j-nop" % "1.6.4"
   val socko = "org.mashupbots.socko" %% "socko-webserver" % "0.4.1"
   val scalatest = "org.scalatest" % "scalatest_2.10" % "2.1.0" % "test"
-  val h2 = "com.h2database" % "h2" % "1.3.166"
+  val redis = "net.debasishg" % "redisclient_2.10" % "2.12"
 }

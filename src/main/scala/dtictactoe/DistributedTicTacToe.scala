@@ -15,6 +15,8 @@ object DistributedTicTacToe extends App {
 
   val actorSystem = ActorSystem()
   val gameSupervisor = actorSystem.actorOf(Props[GameSupervisor])
+  val redisHandler = actorSystem.actorOf(Props[RedisHandler], "RedisHandler")
+
   val playerCount = 50
   val gameCount = 1000
 
@@ -64,7 +66,9 @@ object DistributedTicTacToe extends App {
     }
   }
 
-  println(results.flatten.groupBy(x => x).map(a => (a._1, a._2.length, playerType(a._1.toString))).toSeq.sortWith(_._2 > _._2))
+  val totals = results.flatten.groupBy(x => x).map(a => (a._1, a._2.length, playerType(a._1.toString))).toSeq.sortWith(_._2 > _._2)
+
+  totals.foreach(total => redisHandler ! new Record(total._1.toString, total._2, total._3))
 
   val server = new Server(actorSystem)
 
