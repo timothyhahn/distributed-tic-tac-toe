@@ -3,19 +3,19 @@ package dtictactoe
 // Akka Imports
 import akka.actor.Actor
 
-case class Board(board: List[List[Char]])
+case class Board(board: List[List[Char]], player: Char)
 
 class DumbActor extends TicTacToeActor {
 
   def randomMove(moves: List[(Int, Int)]): (Int, Int) = moves(TicTacToe.rng.nextInt(moves.length)) 
 
-  def calculateMove(board: List[List[Char]]): (Int, Int) = randomMove(validMoves(board))
+  def calculateMove(board: List[List[Char]], player: Char): (Int, Int) = randomMove(validMoves(board))
 
 }
 
 trait TicTacToeActor extends Actor {
 
-  def calculateMove(board: List[List[Char]]): (Int, Int)
+  def calculateMove(board: List[List[Char]], player: Char): (Int, Int)
 
   def validMoves(board: List[List[Char]]): List[(Int, Int)] = {
     (for {
@@ -27,6 +27,6 @@ trait TicTacToeActor extends Actor {
 
   def receive = {
     case board: Board =>
-      sender ! calculateMove(board.board)
+      sender ! calculateMove(board.board, board.player)
   }
 }

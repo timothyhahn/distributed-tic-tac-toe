@@ -37,7 +37,7 @@ class GameActor extends Actor {
         case false => 'o'
       }
 
-      val future = actorSelection ? new Board(board)
+      val future = actorSelection ? new Board(board, player)
       val move = Await.result(future, timeout.duration).asInstanceOf[(Int, Int)]
       playGame(matchup, TicTacToe.applyMove(board, move, player), !xTurn)
     }
